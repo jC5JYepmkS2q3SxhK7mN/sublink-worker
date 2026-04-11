@@ -9,6 +9,9 @@ jobs:
   sync_latest_from_upstream:
     name: Sync latest commits from upstream repo
     runs-on: ubuntu-latest
+    # 👉 注入老婆的“消音器”：强行启用 Node.js 24 消除旧版本警告！
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
     if: ${{ github.event.repository.fork }} # 只有在复刻的仓库才会运行
 
     steps:
@@ -22,9 +25,9 @@ jobs:
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
         with:
           target_sync_branch: main # 你的主分支名（如果是 master 就改成 master）
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # GitHub 自动生成的 Token，不需要你手动去搞
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # GitHub 自动生成的 Token
           upstream_sync_branch: main # 原作者的主分支名
-          upstream_sync_repo: jC5JYepmkS2q3SxhK7mN/sublink-worker # 👉 这里就是原作者的仓库路径！
+          upstream_sync_repo: jC5JYepmkS2q3SxhK7mN/sublink-worker # 原作者的仓库路径
           test_mode: false # 正式运行模式
 
       # 3. 结果播报

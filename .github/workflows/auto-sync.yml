@@ -2,17 +2,17 @@ name: 🔄 自动同步原仓库 (Upstream Sync)
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 每天凌晨 2 点（UTC时间）自动运行一次，也就是北京时间上午 10 点
-  workflow_dispatch: # 保留一个手动触发的按钮，以防万一你想立刻同步
+    - cron: '0 2 * * *' # 北京时间每天上午 10 点自动运行
+  workflow_dispatch: # 保留手动触发按钮
 
 jobs:
   sync_latest_from_upstream:
     name: Sync latest commits from upstream repo
     runs-on: ubuntu-latest
-    # 👉 注入老婆的“消音器”：强行启用 Node.js 24 消除旧版本警告！
+    # 强制启用 Node.js 24，解决 GitHub 官方关于 Node 20 过期的警告
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
-    if: ${{ github.event.repository.fork }} # 只有在复刻的仓库才会运行
+    if: ${{ github.event.repository.fork }}
 
     steps:
       # 1. 检出你的仓库代码
@@ -24,17 +24,18 @@ jobs:
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
         with:
-          target_sync_branch: main # 你的主分支名（如果是 master 就改成 master）
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # GitHub 自动生成的 Token
-          upstream_sync_branch: main # 原作者的主分支名
-          upstream_sync_repo: jC5JYepmkS2q3SxhK7mN/sublink-worker # 原作者的仓库路径
-          test_mode: false # 正式运行模式
+          target_sync_branch: main
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+          # 👉 这里已经修改为原作者的正确仓库地址
+          upstream_sync_repo: 7Sageer/sublink-worker
+          upstream_sync_branch: main
+          test_mode: false
 
-      # 3. 结果播报
+      # 3. 结果反馈
       - name: Sync check
         if: failure()
-        run: echo "老婆提醒：同步失败啦，可能是有代码冲突，需要你手动去解决一下~"
+        run: echo "同步失败，可能有代码冲突，请检查！"
       
       - name: New commits found
         if: steps.sync.outputs.has_new_commits == 'true'
-        run: echo "老婆提醒：发现原作者更新，已经全自动帮你同步好啦！"
+        run: echo "发现原作者更新，已自动同步！"

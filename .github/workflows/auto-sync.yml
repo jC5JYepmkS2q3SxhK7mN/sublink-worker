@@ -1,0 +1,37 @@
+name: 🔄 自动同步原仓库 (Upstream Sync)
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 每天凌晨 2 点（UTC时间）自动运行一次，也就是北京时间上午 10 点
+  workflow_dispatch: # 保留一个手动触发的按钮，以防万一你想立刻同步
+
+jobs:
+  sync_latest_from_upstream:
+    name: Sync latest commits from upstream repo
+    runs-on: ubuntu-latest
+    if: ${{ github.event.repository.fork }} # 只有在复刻的仓库才会运行
+
+    steps:
+      # 1. 检出你的仓库代码
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+
+      # 2. 运行同步动作
+      - name: Sync upstream changes
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          target_sync_branch: main # 你的主分支名（如果是 master 就改成 master）
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # GitHub 自动生成的 Token，不需要你手动去搞
+          upstream_sync_branch: main # 原作者的主分支名
+          upstream_sync_repo: jC5JYepmkS2q3SxhK7mN/sublink-worker # 👉 这里就是原作者的仓库路径！
+          test_mode: false # 正式运行模式
+
+      # 3. 结果播报
+      - name: Sync check
+        if: failure()
+        run: echo "老婆提醒：同步失败啦，可能是有代码冲突，需要你手动去解决一下~"
+      
+      - name: New commits found
+        if: steps.sync.outputs.has_new_commits == 'true'
+        run: echo "老婆提醒：发现原作者更新，已经全自动帮你同步好啦！"
